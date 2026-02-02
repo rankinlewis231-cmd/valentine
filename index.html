@@ -56,33 +56,37 @@
     .buttons {
       display: flex;
       justify-content: center;
-      gap: 14px;
+      gap: 12px;
       margin-top: 10px;
-      flex-wrap: nowrap;
-      align-items: center;
+      flex-wrap: wrap;
     }
 
     button {
       border: 0;
-      padding: 16px 26px;
-      font-size: 18px;
-      border-radius: 14px;
+      padding: 12px 18px;
+      font-size: 16px;
+      border-radius: 12px;
       cursor: pointer;
       font-weight: 650;
-      transition: opacity 0.12s ease;
+      transition: opacity 0.12s ease; /* no transform animation */
       touch-action: manipulation;
-      min-width: 120px;
+      min-width: 110px;
     }
 
+    /* Keep original Yes look */
     #yesBtn {
       background: var(--yes);
       color: white;
     }
 
+    /* New No button (no hover behaviour) */
     #noBtn {
       background: var(--no);
       color: #222;
     }
+
+    /* Ensure NOTHING happens on hover */
+    #noBtn:hover { transform: none; }
 
     .result {
       margin-top: 14px;
@@ -110,31 +114,21 @@
     const yesBtn = document.getElementById("yesBtn");
     const result = document.getElementById("result");
 
-    // Starting size values for the No button (match CSS defaults)
-    let padY = 16;
-    let padX = 26;
-    let font = 18;
-    let minW = 120;
+    // Start values match the CSS above
+    let padY = 12, padX = 18, font = 16, minW = 110;
 
-    // Each click/tap makes "No" smaller (without moving position)
+    // Only shrink on click/tap (no hover, no moving)
     noBtn.addEventListener("click", (e) => {
       e.preventDefault();
 
-      // shrink a little each time, with sensible minimums
-      padY = Math.max(6, Math.round(padY * 0.85));
-      padX = Math.max(10, Math.round(padX * 0.85));
-      font = Math.max(12, Math.round(font * 0.92));
-      minW = Math.max(60, Math.round(minW * 0.90));
+      padY = Math.max(6, Math.round(padY * 0.90));
+      padX = Math.max(10, Math.round(padX * 0.90));
+      font = Math.max(12, Math.round(font * 0.95));
+      minW = Math.max(60, Math.round(minW * 0.92));
 
       noBtn.style.padding = `${padY}px ${padX}px`;
       noBtn.style.fontSize = `${font}px`;
       noBtn.style.minWidth = `${minW}px`;
-
-      // Once it's very small, fade it out and disable it
-      if (minW <= 62 && padY <= 6) {
-        noBtn.style.opacity = "0";
-        noBtn.style.pointerEvents = "none";
-      }
     });
 
     yesBtn.addEventListener("click", () => {
