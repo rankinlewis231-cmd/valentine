@@ -79,14 +79,15 @@
       color: white;
     }
 
-    /* The "No" button is positioned absolutely so it can run away */
+    /* "No" button runs away */
     #noBtn {
       background: var(--no);
       color: #222;
-      position: absolute;
+      position: fixed;            /* key: allow moving anywhere on screen */
       left: 50%;
-      top: calc(50% + 120px);
+      top: calc(50% + 170px);     /* starts below the card-ish */
       transform: translateX(-50%);
+      z-index: 9999;              /* stays above everything */
     }
 
     .result {
@@ -104,13 +105,11 @@
 
     <div class="buttons">
       <button id="yesBtn">Yes</button>
+      <button id="noBtn">No</button>
     </div>
 
     <div class="result" id="result"></div>
   </div>
-
-  <!-- "No" lives outside the card so it can move around the page -->
-  <button id="noBtn" aria-label="No">No</button>
 
   <script>
     const noBtn = document.getElementById("noBtn");
@@ -119,16 +118,12 @@
 
     function moveNoButton() {
       const padding = 12;
-
-      // Button size
       const btnW = noBtn.offsetWidth;
       const btnH = noBtn.offsetHeight;
 
-      // Viewport bounds
       const maxX = window.innerWidth - btnW - padding;
       const maxY = window.innerHeight - btnH - padding;
 
-      // Random position within bounds
       const x = Math.max(padding, Math.floor(Math.random() * maxX));
       const y = Math.max(padding, Math.floor(Math.random() * maxY));
 
@@ -137,19 +132,14 @@
       noBtn.style.transform = "none";
     }
 
-    // Make "No" run away on hover (desktop) and touch (mobile)
-    noBtn.addEventListener("mouseenter", moveNoButton);
-    noBtn.addEventListener("mouseover", moveNoButton);
-    noBtn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      moveNoButton();
-    }, { passive: false });
-
-    // If they somehow click it, still refuse 😄
-    noBtn.addEventListener("click", (e) => {
+    // Main behaviour: when user tries to click/tap "No", it moves away
+    noBtn.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       moveNoButton();
     });
+
+    // Extra: on desktop, even hovering near it makes it jump (optional but fun)
+    noBtn.addEventListener("mouseenter", moveNoButton);
 
     yesBtn.addEventListener("click", () => {
       result.textContent = "Yessss! 💖 I came crawling back! 😄";
@@ -158,17 +148,8 @@
       yesBtn.style.opacity = "0.85";
     });
 
-    // Place "No" somewhere sensible at the start
-    window.addEventListener("load", () => {
-      // Start near bottom-ish
-      noBtn.style.left = "50%";
-      noBtn.style.top = "70%";
-      noBtn.style.transform = "translateX(-50%)";
-    });
-
-    // Keep it on-screen after resize
+    // Keep it on-screen if window resizes
     window.addEventListener("resize", () => {
-      // if it ends up off-screen, move it back in
       const rect = noBtn.getBoundingClientRect();
       if (rect.right > window.innerWidth || rect.bottom > window.innerHeight || rect.left < 0 || rect.top < 0) {
         moveNoButton();
