@@ -148,6 +148,9 @@
     <div class="result" id="result"></div>
   </div>
 
+  <!-- Audio file (you uploaded this as music.mp3 in the repo root) -->
+  <audio id="bgMusic" src="music.mp3" preload="auto" loop></audio>
+
   <script>
     const noBtn = document.getElementById("noBtn");
     const yesBtn = document.getElementById("yesBtn");
@@ -155,6 +158,7 @@
     const noStatus = document.getElementById("noStatus");
     const dogImg = document.getElementById("dogImg");
     const danceVideo = document.getElementById("danceVideo");
+    const bgMusic = document.getElementById("bgMusic");
 
     // Starting size values match the CSS above
     let padY = 12, padX = 18, font = 16, minW = 110;
@@ -241,12 +245,22 @@
       dogImg.style.display = "none";
       danceVideo.style.display = "block";
 
-      // Try to play (mobile requires user interaction — this click counts)
+      // Try to play video (click counts as user interaction)
       try {
         await danceVideo.play();
       } catch (err) {
-        // If autoplay is blocked, user can tap the video to start it
         danceVideo.controls = true;
+      }
+
+      // Play music on Yes click (mobile-friendly: user gesture)
+      try {
+        bgMusic.currentTime = 0;
+        await bgMusic.play();
+      } catch (err) {
+        // If blocked, allow the user to start audio by tapping the video
+        danceVideo.addEventListener("click", async () => {
+          try { await bgMusic.play(); } catch(e) {}
+        }, { once: true });
       }
     });
 
