@@ -56,20 +56,21 @@
     .buttons {
       display: flex;
       justify-content: center;
-      gap: 12px;
+      gap: 14px;
       margin-top: 10px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap; /* keep beside each other */
     }
 
     button {
       border: 0;
-      padding: 12px 18px;
-      font-size: 16px;
-      border-radius: 12px;
+      padding: 16px 26px;          /* bigger */
+      font-size: 18px;             /* bigger */
+      border-radius: 14px;
       cursor: pointer;
       font-weight: 650;
-      transition: transform 0.08s ease;
+      transition: transform 0.12s ease, opacity 0.12s ease;
       touch-action: manipulation;
+      min-width: 120px;            /* helps keep them chunky */
     }
 
     button:active { transform: scale(0.98); }
@@ -79,15 +80,10 @@
       color: white;
     }
 
-    /* "No" button runs away */
     #noBtn {
       background: var(--no);
       color: #222;
-      position: fixed;            /* key: allow moving anywhere on screen */
-      left: 50%;
-      top: calc(50% + 170px);     /* starts below the card-ish */
-      transform: translateX(-50%);
-      z-index: 9999;              /* stays above everything */
+      transform-origin: center;    /* shrinks nicely from middle */
     }
 
     .result {
@@ -116,44 +112,28 @@
     const yesBtn = document.getElementById("yesBtn");
     const result = document.getElementById("result");
 
-    function moveNoButton() {
-      const padding = 12;
-      const btnW = noBtn.offsetWidth;
-      const btnH = noBtn.offsetHeight;
+    let noScale = 1;
 
-      const maxX = window.innerWidth - btnW - padding;
-      const maxY = window.innerHeight - btnH - padding;
-
-      const x = Math.max(padding, Math.floor(Math.random() * maxX));
-      const y = Math.max(padding, Math.floor(Math.random() * maxY));
-
-      noBtn.style.left = x + "px";
-      noBtn.style.top = y + "px";
-      noBtn.style.transform = "none";
-    }
-
-    // Main behaviour: when user tries to click/tap "No", it moves away
-    noBtn.addEventListener("pointerdown", (e) => {
+    // Each click/tap makes "No" smaller
+    noBtn.addEventListener("click", (e) => {
       e.preventDefault();
-      moveNoButton();
-    });
 
-    // Extra: on desktop, even hovering near it makes it jump (optional but fun)
-    noBtn.addEventListener("mouseenter", moveNoButton);
+      // shrink by 15% each time, but don't go below a tiny minimum
+      noScale = Math.max(0.15, noScale * 0.85);
+      noBtn.style.transform = `scale(${noScale})`;
+
+      // once it's tiny, hide it (optional but smooth)
+      if (noScale <= 0.16) {
+        noBtn.style.opacity = "0";
+        noBtn.style.pointerEvents = "none";
+      }
+    });
 
     yesBtn.addEventListener("click", () => {
       result.textContent = "Yessss! 💖 I came crawling back! 😄";
       noBtn.style.display = "none";
       yesBtn.disabled = true;
       yesBtn.style.opacity = "0.85";
-    });
-
-    // Keep it on-screen if window resizes
-    window.addEventListener("resize", () => {
-      const rect = noBtn.getBoundingClientRect();
-      if (rect.right > window.innerWidth || rect.bottom > window.innerHeight || rect.left < 0 || rect.top < 0) {
-        moveNoButton();
-      }
     });
   </script>
 </body>
