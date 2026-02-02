@@ -58,22 +58,21 @@
       justify-content: center;
       gap: 14px;
       margin-top: 10px;
-      flex-wrap: nowrap; /* keep beside each other */
+      flex-wrap: nowrap;
+      align-items: center;
     }
 
     button {
       border: 0;
-      padding: 16px 26px;          /* bigger */
-      font-size: 18px;             /* bigger */
+      padding: 16px 26px;
+      font-size: 18px;
       border-radius: 14px;
       cursor: pointer;
       font-weight: 650;
-      transition: transform 0.12s ease, opacity 0.12s ease;
+      transition: opacity 0.12s ease;
       touch-action: manipulation;
-      min-width: 120px;            /* helps keep them chunky */
+      min-width: 120px;
     }
-
-    button:active { transform: scale(0.98); }
 
     #yesBtn {
       background: var(--yes);
@@ -83,7 +82,6 @@
     #noBtn {
       background: var(--no);
       color: #222;
-      transform-origin: center;    /* shrinks nicely from middle */
     }
 
     .result {
@@ -112,18 +110,28 @@
     const yesBtn = document.getElementById("yesBtn");
     const result = document.getElementById("result");
 
-    let noScale = 1;
+    // Starting size values for the No button (match CSS defaults)
+    let padY = 16;
+    let padX = 26;
+    let font = 18;
+    let minW = 120;
 
-    // Each click/tap makes "No" smaller
+    // Each click/tap makes "No" smaller (without moving position)
     noBtn.addEventListener("click", (e) => {
       e.preventDefault();
 
-      // shrink by 15% each time, but don't go below a tiny minimum
-      noScale = Math.max(0.15, noScale * 0.85);
-      noBtn.style.transform = `scale(${noScale})`;
+      // shrink a little each time, with sensible minimums
+      padY = Math.max(6, Math.round(padY * 0.85));
+      padX = Math.max(10, Math.round(padX * 0.85));
+      font = Math.max(12, Math.round(font * 0.92));
+      minW = Math.max(60, Math.round(minW * 0.90));
 
-      // once it's tiny, hide it (optional but smooth)
-      if (noScale <= 0.16) {
+      noBtn.style.padding = `${padY}px ${padX}px`;
+      noBtn.style.fontSize = `${font}px`;
+      noBtn.style.minWidth = `${minW}px`;
+
+      // Once it's very small, fade it out and disable it
+      if (minW <= 62 && padY <= 6) {
         noBtn.style.opacity = "0";
         noBtn.style.pointerEvents = "none";
       }
