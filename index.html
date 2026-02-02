@@ -53,12 +53,23 @@
       pointer-events: none;
     }
 
+    /* Video (shown after Yes) */
+    #danceVideo {
+      width: 220px;
+      max-width: 55vw;
+      height: auto;
+      display: none;           /* hidden until Yes */
+      margin: 0 auto 14px;
+      border-radius: 12px;
+    }
+
     .buttons {
       display: flex;
       justify-content: center;
       gap: 12px;
       margin-top: 10px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     button {
@@ -68,18 +79,16 @@
       border-radius: 12px;
       cursor: pointer;
       font-weight: 650;
-      transition: opacity 0.12s ease; /* no transform animation */
+      transition: opacity 0.12s ease;
       touch-action: manipulation;
       min-width: 110px;
     }
 
-    /* Keep original Yes look */
     #yesBtn {
       background: var(--yes);
       color: white;
     }
 
-    /* New No button (no hover behaviour) */
     #noBtn {
       background: var(--no);
       color: #222;
@@ -88,17 +97,46 @@
     /* Ensure NOTHING happens on hover */
     #noBtn:hover { transform: none; }
 
+    /* Counter/message under buttons */
+    .no-status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #444;
+      min-height: 20px;
+      font-weight: 600;
+    }
+
     .result {
       margin-top: 14px;
       font-size: 18px;
       font-weight: 600;
       min-height: 26px;
     }
+
+    /* Hearts/confetti burst */
+    .heart {
+      position: fixed;
+      left: 0;
+      top: 0;
+      font-size: 18px;
+      pointer-events: none;
+      user-select: none;
+      will-change: transform, opacity;
+      animation: floatUp 1.2s ease-out forwards;
+      z-index: 9999;
+    }
+
+    @keyframes floatUp {
+      0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) scale(1.6); opacity: 0; }
+    }
   </style>
 </head>
 <body>
   <div class="card" id="card">
-    <img class="dog" src="dog.png" alt="Cute dog holding roses" />
+    <img class="dog" id="dogImg" src="dog.png" alt="Cute dog holding roses" />
+    <video id="danceVideo" src="dog_dancing.mp4" playsinline muted loop></video>
+
     <h1>Tanvee, will you be my valentine? 💘</h1>
 
     <div class="buttons">
@@ -106,6 +144,7 @@
       <button id="noBtn">No</button>
     </div>
 
+    <div class="no-status" id="noStatus">No attempts: 0</div>
     <div class="result" id="result"></div>
   </div>
 
@@ -113,30 +152,106 @@
     const noBtn = document.getElementById("noBtn");
     const yesBtn = document.getElementById("yesBtn");
     const result = document.getElementById("result");
+    const noStatus = document.getElementById("noStatus");
+    const dogImg = document.getElementById("dogImg");
+    const danceVideo = document.getElementById("danceVideo");
 
-    // Start values match the CSS above
+    // Starting size values match the CSS above
     let padY = 12, padX = 18, font = 16, minW = 110;
+    let noClicks = 0;
 
-    // Only shrink on click/tap (no hover, no moving)
+    const noMessages = [
+      "No attempts: 0",
+      "No attempts: 1 (be serious 😭)",
+      "No attempts: 2 (that’s enough now)",
+      "No attempts: 3 (Tanvee pls)",
+      "No attempts: 4 (nice try)",
+      "No attempts: 5 (you’re persistent)",
+      "No attempts: 6 (ok relax)",
+      "No attempts: 7 (it’s getting tiny)",
+      "No attempts: 8 (last warning)",
+      "No attempts: 9 (final chance)",
+      "No attempts: 10 (ok bye)"
+    ];
+
+    function updateNoStatus() {
+      noStatus.textContent = noMessages[Math.min(noClicks, noMessages.length - 1)];
+    }
+
+    function burstHearts(count = 26) {
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement("div");
+        el.className = "heart";
+        el.textContent = Math.random() > 0.5 ? "💖" : "💘";
+
+        const x = (window.innerWidth / 2) + (Math.random() * 120 - 60);
+        const y = (window.innerHeight / 2) + (Math.random() * 80 - 40);
+
+        const dx = (Math.random() * 260 - 130) + "px";
+        const dy = (- (Math.random() * 320 + 180)) + "px";
+
+        el.style.left = x + "px";
+        el.style.top = y + "px";
+        el.style.setProperty("--dx", dx);
+        el.style.setProperty("--dy", dy);
+
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1300);
+      }
+    }
+
+    // No = shrink each click, and after 10 clicks, disappear (leaving Yes)
     noBtn.addEventListener("click", (e) => {
       e.preventDefault();
+      noClicks++;
+      updateNoStatus();
 
-      padY = Math.max(6, Math.round(padY * 0.90));
-      padX = Math.max(10, Math.round(padX * 0.90));
-      font = Math.max(12, Math.round(font * 0.95));
-      minW = Math.max(60, Math.round(minW * 0.92));
+      // shrink a bit each time, with minimums
+      padY = Math.max(2, Math.round(padY * 0.85));
+      padX = Math.max(4, Math.round(padX * 0.85));
+      font = Math.max(8, Math.round(font * 0.90));
+      minW = Math.max(28, Math.round(minW * 0.85));
 
       noBtn.style.padding = `${padY}px ${padX}px`;
       noBtn.style.fontSize = `${font}px`;
       noBtn.style.minWidth = `${minW}px`;
+
+      // after 10 clicks, fade out and disappear completely
+      if (noClicks >= 10) {
+        noBtn.style.opacity = "0";
+        noBtn.style.pointerEvents = "none";
+        setTimeout(() => {
+          noBtn.style.display = "none";
+        }, 250);
+      }
     });
 
-    yesBtn.addEventListener("click", () => {
+    yesBtn.addEventListener("click", async () => {
       result.textContent = "Yessss! 💖 I came crawling back! 😄";
+
+      // Hearts/confetti burst
+      burstHearts(30);
+
+      // Hide No and disable Yes
       noBtn.style.display = "none";
       yesBtn.disabled = true;
       yesBtn.style.opacity = "0.85";
+
+      // Swap image -> video
+      dogImg.style.display = "none";
+      danceVideo.style.display = "block";
+
+      // Try to play (mobile requires user interaction — this click counts)
+      try {
+        await danceVideo.play();
+      } catch (err) {
+        // If autoplay is blocked, user can tap the video to start it
+        danceVideo.controls = true;
+      }
     });
+
+    // initialise
+    updateNoStatus();
   </script>
 </body>
 </html>
